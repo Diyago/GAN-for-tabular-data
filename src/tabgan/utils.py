@@ -160,7 +160,10 @@ def calculate_psi(expected, actual, buckettype="bins", buckets=10, axis=0):
 
     for i in range(0, len(psi_values)):
         if len(psi_values) == 1:
-            psi_values = psi(expected, actual, buckets)
+            try:
+                psi_values = psi(expected, actual, buckets)
+            except:
+                psi_values = 0.9
         elif axis == 0:
             psi_values[i] = psi(expected[:, i], actual[:, i], buckets)
         elif axis == 1:
@@ -226,7 +229,7 @@ def compare_dataframes(df_original, df_generated):
     psi_similarity = sum(psi_scores) / len(psi_scores) if psi_scores else 1
 
     # Combine uniqueness, data quality, and PSI scores (weighted)
-    similarity_score = 0.1 * uniqueness_score + 0.45 * data_quality_score + 0.45 * psi_similarity
+    similarity_score = 0.1 * uniqueness_score + 0.45 * data_quality_score + 0.45 * (1/psi_similarity)
     print(uniqueness_score, data_quality_score, psi_similarity)
     # Ensure score is between 0 and 1
     similarity_score = min(max(similarity_score, 0), 1)
