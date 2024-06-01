@@ -28,10 +28,10 @@ def make_two_digit(num_as_str: str) -> pd.DataFrame:
     if len(num_as_str) == 2:
         return num_as_str
     else:
-        return '0' + num_as_str
+        return "0" + num_as_str
 
 
-def get_year_mnth_dt_from_date(df: pd.DataFrame, date_col='Date') -> pd.DataFrame:
+def get_year_mnth_dt_from_date(df: pd.DataFrame, date_col="Date") -> pd.DataFrame:
     """
     Extracts year, month, and day from a date column in a pandas DataFrame.
 
@@ -43,23 +43,23 @@ def get_year_mnth_dt_from_date(df: pd.DataFrame, date_col='Date') -> pd.DataFram
         pd.DataFrame: DataFrame with year, month, and day columns added.
     """
     df[date_col] = pd.to_datetime(df[date_col])
-    df['year'] = df[date_col].dt.year
-    df['month'] = df[date_col].dt.month
-    df['day'] = df[date_col].dt.day
+    df["year"] = df[date_col].dt.year
+    df["month"] = df[date_col].dt.month
+    df["day"] = df[date_col].dt.day
     return df
 
 
 def collect_dates(df: pd.DataFrame) -> pd.DataFrame:
-    df["Date"] = df['year'].astype(str) + '-' \
-                 + df['month'].astype(str).apply(make_two_digit) + '-' \
-                 + df['day'].astype(str).apply(make_two_digit)
-    df.drop(['year', 'month', 'day'], axis=1, inplace=True)
+    df["Date"] = df["year"].astype(str) + "-" \
+                 + df["month"].astype(str).apply(make_two_digit) + "-" \
+                 + df["day"].astype(str).apply(make_two_digit)
+    df.drop(["year", "month", "day"], axis=1, inplace=True)
     return df
 
 
 def seed_everything(seed=1234):
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -90,7 +90,7 @@ def get_columns_if_exists(df, col) -> pd.DataFrame:
         return None
 
 
-def calculate_psi(expected, actual, buckettype='bins', buckets=10, axis=0):
+def calculate_psi(expected, actual, buckettype="bins", buckets=10, axis=0):
     '''Calculate the PSI (population stability index) across all variables
 
     Args:
@@ -129,9 +129,9 @@ def calculate_psi(expected, actual, buckettype='bins', buckets=10, axis=0):
 
         breakpoints = np.arange(0, buckets + 1) / (buckets) * 100
 
-        if buckettype == 'bins':
+        if buckettype == "bins":
             breakpoints = scale_range(breakpoints, np.min(expected_array), np.max(expected_array))
-        elif buckettype == 'quantiles':
+        elif buckettype == "quantiles":
             breakpoints = np.stack([np.percentile(expected_array, b) for b in breakpoints])
 
         expected_fractions = np.histogram(expected_array, breakpoints)[0] / len(expected_array)
@@ -188,7 +188,10 @@ def compare_dataframes(df_original, df_generated):
     similarity_score = compare_dataframes(df1.copy(), df2.copy())
     print(similarity_score)
     """
-
+    # Handle DataFrames with different shapes
+    if len(df_original.columns) != len(df_generated.columns):
+        # Penalize if column names don't match
+        return 0.0
     # Handle potential differences in row count
     n_original = len(df_original)
     n_generated = len(df_generated)
@@ -223,8 +226,8 @@ def compare_dataframes(df_original, df_generated):
     psi_similarity = sum(psi_scores) / len(psi_scores) if psi_scores else 1
 
     # Combine uniqueness, data quality, and PSI scores (weighted)
-    similarity_score = 0.5 * uniqueness_score + 0.3 * data_quality_score + 0.2 * psi_similarity
-
+    similarity_score = 0.1 * uniqueness_score + 0.45 * data_quality_score + 0.45 * psi_similarity
+    print(uniqueness_score, data_quality_score, psi_similarity)
     # Ensure score is between 0 and 1
     similarity_score = min(max(similarity_score, 0), 1)
 

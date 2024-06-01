@@ -414,4 +414,4 @@ if __name__ == "__main__":
         gen_x_times=1.1, cat_cols=['year'], bot_filter_quantile=0.001, top_filter_quantile=0.999,
         is_post_process=True, pregeneration_frac=2, only_generated_data=False
     ).generate_data_pipe(train.drop('Date', axis=1), None, train.drop('Date', axis=1))
-    new_train = collect_dates()
+    new_train = collect_dates(new_train)
