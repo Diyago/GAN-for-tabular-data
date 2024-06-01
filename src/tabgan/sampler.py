@@ -252,6 +252,35 @@ class SamplerOriginal(Sampler):
                     )
                 )
 
+    def handle_generated_data(self, train_df, generated_df, only_generated_data):
+        generated_df = pd.DataFrame(generated_df)
+        generated_df.columns = train_df.columns
+        for i in range(len(generated_df.columns)):
+            generated_df[generated_df.columns[i]] = generated_df[
+                generated_df.columns[i]
+            ].astype(train_df.dtypes.values[i])
+        if not only_generated_data:
+            train_df = pd.concat([train_df, generated_df]).reset_index(drop=True)
+            logging.info(
+                "Generated shapes: {} plus target".format(
+                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
+                )
+            )
+            return (
+                _drop_col_if_exist(train_df, self.TEMP_TARGET),
+                get_columns_if_exists(train_df, self.TEMP_TARGET),
+            )
+        else:
+            logging.info(
+                "Generated shapes: {} plus target".format(
+                    _drop_col_if_exist(generated_df, self.TEMP_TARGET).shape
+                )
+            )
+            return (
+                _drop_col_if_exist(generated_df, self.TEMP_TARGET),
+                get_columns_if_exists(generated_df, self.TEMP_TARGET),
+            )
+
 
 class SamplerGAN(SamplerOriginal):
     def check_params(self):
@@ -285,39 +314,7 @@ class SamplerGAN(SamplerOriginal):
         generated_df = ctgan.sample(
             self.pregeneration_frac * self.get_generated_shape(train_df)
         )
-        data_dtype = train_df.dtypes.values
-
-        for i in range(len(generated_df.columns)):
-            generated_df[generated_df.columns[i]] = generated_df[
-                generated_df.columns[i]
-            ].astype(data_dtype[i])
-
-        if not only_generated_data:
-            train_df = pd.concat([train_df, generated_df]).reset_index(drop=True)
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(train_df, self.TEMP_TARGET),
-                get_columns_if_exists(train_df, self.TEMP_TARGET),
-            )
-        else:
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(generated_df, self.TEMP_TARGET),
-                get_columns_if_exists(generated_df, self.TEMP_TARGET),
-            )
-
-        return (
-            _drop_col_if_exist(train_df, self.TEMP_TARGET),
-            get_columns_if_exists(train_df, self.TEMP_TARGET),
-        )
+        return self.handle_generated_data(train_df, generated_df, only_generated_data)
 
 
 class SamplerDiffusion(SamplerOriginal):
@@ -340,40 +337,8 @@ class SamplerDiffusion(SamplerOriginal):
                                                 diffusion_type='flow', n_jobs=-1)
         logging.info("Finished training ForestDiffusionModel")
         generated_df = forest_model.generate(batch_size=int(self.gen_x_times * train_df.to_numpy().shape[0]))
-        data_dtype = train_df.dtypes.values
-        generated_df = pd.DataFrame(generated_df)
-        generated_df.columns = train_df.columns
-        for i in range(len(generated_df.columns)):
-            generated_df[generated_df.columns[i]] = generated_df[
-                generated_df.columns[i]
-            ].astype(data_dtype[i])
 
-        if not only_generated_data:
-            train_df = pd.concat([train_df, generated_df]).reset_index(drop=True)
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(train_df, self.TEMP_TARGET),
-                get_columns_if_exists(train_df, self.TEMP_TARGET),
-            )
-        else:
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(generated_df, self.TEMP_TARGET),
-                get_columns_if_exists(generated_df, self.TEMP_TARGET),
-            )
-
-        return (
-            _drop_col_if_exist(train_df, self.TEMP_TARGET),
-            get_columns_if_exists(train_df, self.TEMP_TARGET),
-        )
+        return self.handle_generated_data(train_df, generated_df, only_generated_data)
 
     @staticmethod
     def get_column_indexes(df, column_names):
@@ -413,40 +378,7 @@ class SamplerLLM(SamplerOriginal):
 
         generated_df = model.sample(int(self.gen_x_times * train_df.shape[0]), device=device,
                                     max_length=self.gen_params["max_length"])
-        data_dtype = train_df.dtypes.values
-        generated_df = pd.DataFrame(generated_df)
-        generated_df.columns = train_df.columns
-        for i in range(len(generated_df.columns)):
-            generated_df[generated_df.columns[i]] = generated_df[
-                generated_df.columns[i]
-            ].astype(data_dtype[i])
-
-        if not only_generated_data:
-            train_df = pd.concat([train_df, generated_df]).reset_index(drop=True)
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(train_df, self.TEMP_TARGET),
-                get_columns_if_exists(train_df, self.TEMP_TARGET),
-            )
-        else:
-            logging.info(
-                "Generated shapes: {} plus target".format(
-                    _drop_col_if_exist(train_df, self.TEMP_TARGET).shape
-                )
-            )
-            return (
-                _drop_col_if_exist(generated_df, self.TEMP_TARGET),
-                get_columns_if_exists(generated_df, self.TEMP_TARGET),
-            )
-
-        return (
-            _drop_col_if_exist(train_df, self.TEMP_TARGET),
-            get_columns_if_exists(train_df, self.TEMP_TARGET),
-        )
+        return self.handle_generated_data(train_df, generated_df, only_generated_data)
 
 
 if __name__ == "__main__":
@@ -491,7 +423,6 @@ if __name__ == "__main__":
 
     min_date = pd.to_datetime('2019-01-01')
     max_date = pd.to_datetime('2021-12-31')
-
     d = (max_date - min_date).days + 1
 
     train['Date'] = min_date + pd.to_timedelta(np.random.randint(d, size=train_size), unit='d')
