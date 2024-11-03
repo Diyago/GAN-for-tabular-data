@@ -5,8 +5,8 @@
 # GANs and TimeGANs, Diffusions, LLM for tabular  data
 
 <img src="./images/tabular_gan.png" height="15%" width="15%">
-Generative  Networks are well-known for their success in realistic image generation. However, they can also be applied to generate tabular data. Here will give opportunity to try some of them.
 
+Generative  Networks are well-known for their success in realistic image generation. However, they can also be applied to generate tabular data. We introduce major improvements for generating high-fidelity tabular data giving oppotunity to try GANS, TimeGANs, Diffusions and LLM for tabular data generations. 
 * Arxiv article: ["Tabular GANs for uneven distribution"](https://arxiv.org/abs/2010.00638)
 * Medium post: [GANs for tabular data](https://towardsdatascience.com/review-of-gans-for-tabular-data-a30a2199342)
 
@@ -15,6 +15,17 @@ Generative  Networks are well-known for their success in realistic image generat
 * Installation: `pip install tabgan`
 * To generate new data to train by sampling and then filtering by adversarial training
   call `GANGenerator().generate_data_pipe`:
+
+### Data Format
+
+TabGAN accepts data as a ```numpy.ndarray``` or ```pandas.DataFrame``` with columns categorized as:
+
+* **Continuous Columns**: Numerical columns with any possible value.
+* **Discrete Columns**: Columns with a limited set of values (e.g., categorical data).
+
+Note: TabGAN does not differentiate between floats and integers, so all values are treated as floats. For integer requirements, round the output outside of TabGAN.
+
+### Example code 
 
 ``` python
 from tabgan.sampler import OriginalGenerator, GANGenerator, ForestDiffusionGenerator, LLMGenerator
@@ -60,7 +71,7 @@ All samplers `OriginalGenerator`, `ForestDiffusionGenerator`, `LLMGenerator` and
   ignored
 * **adversarial_model_params**: dict params for adversarial filtering model, default values for binary task
 * **pregeneration_frac**: float = 2 - for generation step gen_x_times * pregeneration_frac amount of data will
-  generated. However in postprocessing (1 + gen_x_times) % of original data will be returned
+  be generated. However, in postprocessing (1 + gen_x_times) % of original data will be returned
 * **gen_params**: dict params for GAN training
 
 For `generate_data_pipe` methods params:
