@@ -70,7 +70,7 @@ def _sampler(creator, in_train, in_target, in_test) -> None:
     _logger = logging.getLogger(__name__)
     _logger.info("Starting generating data")
     train, test = creator.generate_data_pipe(in_train, in_target, in_test)
-    _logger.info(train, test)
+    _logger.info(f"Train Data: {train}\nTest Data: {test}")
     _logger.info("Finished generation\n")
     return train, test
 
@@ -91,12 +91,12 @@ def get_columns_if_exists(df, col) -> pd.DataFrame:
 
 
 def calculate_psi(expected, actual, buckettype="bins", buckets=10, axis=0):
-    '''Calculate the PSI (population stability index) across all variables
+    """Calculate the PSI (population stability index) across all variables
 
     Args:
        expected: numpy matrix of original values
        actual: numpy matrix of new values
-       bucket type: type of strategy for creating buckets, bins splits into even splits, quantiles splits into quantile buckets
+       buckettype: type of strategy for creating buckets, bins splits into even splits, quantiles splits into quantile buckets
        buckets: number of quantiles to use in bucketing variables
        axis: axis by which variables are defined, 0 for vertical, 1 for horizontal
 
@@ -107,10 +107,10 @@ def calculate_psi(expected, actual, buckettype="bins", buckets=10, axis=0):
        Matthew Burke
        github.com/mwburke
        mwburke.github.io.com
-    '''
+    """
 
     def psi(expected_array, actual_array, buckets):
-        '''Calculate the PSI for a single variable
+        """Calculate the PSI for a single variable
 
         Args:
            expected_array: numpy array of original values
@@ -119,15 +119,15 @@ def calculate_psi(expected, actual, buckettype="bins", buckets=10, axis=0):
 
         Returns:
            psi_value: calculated PSI value
-        '''
+        """
 
-        def scale_range(input, min, max):
-            input += -(np.min(input))
-            input /= np.max(input) / (max - min)
-            input += min
-            return input
+        def scale_range(input_val, min_val, max_val):
+            input_val += -(np.min(input_val))
+            input_val /= np.max(input_val) / (max_val - min_val)
+            input_val += min_val
+            return input_val
 
-        breakpoints = np.arange(0, buckets + 1) / (buckets) * 100
+        breakpoints = np.arange(0, buckets + 1) / buckets * 100
 
         if buckettype == "bins":
             breakpoints = scale_range(breakpoints, np.min(expected_array), np.max(expected_array))

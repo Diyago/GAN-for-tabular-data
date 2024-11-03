@@ -11,8 +11,11 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 import pandas as pd
 from tabgan.utils import compare_dataframes
+import logging
 
 warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", message=".*No further splits with positive gain.*")
+
 params = {
     'objective': 'binary',  # Assuming binary classification
     'metric': 'auc',  # Track AUC during training
@@ -111,6 +114,8 @@ if __name__ == "__main__":
                                         pd.DataFrame(y_train.astype(int).reset_index(drop=True)).copy(),
                                         pd.DataFrame(X_test.reset_index(drop=True)).copy(), typegen=typegen,
                                         cat_cols=cat_cols)
+
+            lgb.set_logger(logging.ERROR)
 
             # Create LightGBM datasets (separate training and testing data)
             lgb_train = lgb.Dataset(X_train, label=y_train, params={"verbosity": -1})
